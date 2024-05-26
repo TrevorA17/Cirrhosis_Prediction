@@ -40,3 +40,22 @@ test_data <- cleaned_liver_data[-train_indices, ]
 
 dim(train_data)
 dim(test_data)
+
+# Perform bootstrapping on Cholesterol
+bootstrap_chol <- function(data, num_bootstraps) {
+  bootstrap_means <- numeric(num_bootstraps)
+  for (i in 1:num_bootstraps) {
+    bootstrap_sample <- sample(data$Cholesterol, replace = TRUE)
+    bootstrap_means[i] <- mean(bootstrap_sample)
+  }
+  return(bootstrap_means)
+}
+
+# Number of bootstraps
+num_bootstraps <- 1000
+
+# Run bootstrapping
+bootstrap_means_chol <- bootstrap_chol(cleaned_liver_data, num_bootstraps)
+
+# Summary of bootstrapped means
+summary(bootstrap_means_chol)
