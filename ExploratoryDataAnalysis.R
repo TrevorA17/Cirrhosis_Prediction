@@ -70,3 +70,12 @@ quantile(liver_data$Bilirubin)
 # Correlation matrix
 cor_matrix <- cor(liver_data[, c("Age", "Bilirubin", "Cholesterol", "Albumin", "Copper", "Alk_Phos", "SGOT", "Tryglicerides", "Platelets", "Prothrombin")])
 print(cor_matrix)
+
+# One-Way ANOVA example (e.g., comparing Age across different Status)
+anova_age <- aov(Age ~ Status, data = liver_data)
+summary(anova_age)
+
+# Two-Way ANOVA example (e.g., comparing Age across Sex and Drug)
+anova_age_sex_drug <- aov(Age ~ Sex + Drug, data = liver_data)
+summary(anova_age_sex_drug)
+
