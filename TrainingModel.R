@@ -112,3 +112,39 @@ predictions_svm <- predict(model_svm, newdata = test_data)
 # Evaluate model performance
 confusionMatrix(predictions_svm, test_data$Status)
 
+# Load necessary libraries
+library(caret)
+library(e1071)  # For SVM
+library(nnet)  # For neural networks
+library(randomForest)  # For random forest
+
+# Define control for cross-validation
+control <- trainControl(method = "cv", number = 10)
+
+# Train SVM model
+set.seed(123)  # For reproducibility
+model_svm <- train(Status ~ ., data = train_data, method = "svmRadial", trControl = control)
+
+# Train neural network (nnet) model
+set.seed(123)
+model_nnet <- train(Status ~ ., data = train_data, method = "nnet", trControl = control, trace = FALSE, linout = TRUE)
+
+# Train multinomial logistic regression model
+set.seed(123)
+model_multinom <- train(Status ~ ., data = train_data, method = "multinom", trControl = control, trace = FALSE)
+
+# Train random forest model
+set.seed(123)
+model_rf <- train(Status ~ ., data = train_data, method = "rf", trControl = control)
+
+# Aggregate results using resamples
+results <- resamples(list(SVM = model_svm, NNet = model_nnet, Multinom = model_multinom, RF = model_rf))
+
+# Print summary of the results
+summary(results)
+
+# Plot comparisons
+dotplot(results)
+
+
+
