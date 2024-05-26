@@ -29,3 +29,14 @@ head(liver_data)
 
 # View the dataset in a separate viewer window
 View(liver_data)
+
+# Set seed for reproducibility
+set.seed(123)
+
+# Split data into training and testing sets (e.g., 80% train, 20% test)
+train_indices <- sample(1:nrow(cleaned_liver_data), 0.8*nrow(cleaned_liver_data))
+train_data <- cleaned_liver_data[train_indices, ]
+test_data <- cleaned_liver_data[-train_indices, ]
+
+dim(train_data)
+dim(test_data)
