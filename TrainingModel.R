@@ -59,3 +59,56 @@ bootstrap_means_chol <- bootstrap_chol(cleaned_liver_data, num_bootstraps)
 
 # Summary of bootstrapped means
 summary(bootstrap_means_chol)
+
+# Example using basic k-fold cross-validation with logistic regression
+library(caret)
+
+# Define control parameters for cross-validation
+control <- trainControl(method = "cv", number = 5)
+
+
+# Train logistic regression model using cross-validation
+model <- train(Status ~ ., data = train_data, method = "rf", trControl = control)
+
+# Print model performance
+print(model)
+
+# Train multinomial logistic regression model
+library(nnet)
+model_multinom <- multinom(Status ~ ., data = train_data)
+
+# Print model summary
+summary(model_multinom)
+
+# Make predictions on the test set
+predictions_multinom <- predict(model_multinom, newdata = test_data)
+
+# Evaluate model performance
+confusionMatrix(predictions_multinom, test_data$Status)
+
+# Train random forest model
+library(randomForest)
+model_rf <- randomForest(Status ~ ., data = train_data)
+
+# Print model summary
+print(model_rf)
+
+# Make predictions on the test set
+predictions_rf <- predict(model_rf, newdata = test_data)
+
+# Evaluate model performance
+confusionMatrix(predictions_rf, test_data$Status)
+
+# Train SVM model
+library(e1071)
+model_svm <- svm(Status ~ ., data = train_data)
+
+# Print model summary
+print(model_svm)
+
+# Make predictions on the test set
+predictions_svm <- predict(model_svm, newdata = test_data)
+
+# Evaluate model performance
+confusionMatrix(predictions_svm, test_data$Status)
+
