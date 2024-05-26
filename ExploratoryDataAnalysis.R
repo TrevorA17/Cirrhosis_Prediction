@@ -79,3 +79,19 @@ summary(anova_age)
 anova_age_sex_drug <- aov(Age ~ Sex + Drug, data = liver_data)
 summary(anova_age_sex_drug)
 
+# Histogram for Age
+hist(liver_data$Age, main = "Histogram of Age", xlab = "Age")
+
+# Bar plot for Status
+barplot(table(liver_data$Status), main = "Bar Plot of Status")
+
+# Scatter plot for Age vs. Bilirubin
+plot(liver_data$Age, liver_data$Bilirubin, main = "Scatter Plot of Age vs. Bilirubin", 
+     xlab = "Age", ylab = "Bilirubin")
+
+# Box plot for Age by Status
+boxplot(Age ~ Status, data = liver_data, main = "Box Plot of Age by Status", 
+        xlab = "Status", ylab = "Age")
+
+
+
