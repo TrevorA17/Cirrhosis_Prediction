@@ -1,0 +1,358 @@
+---
+title: "Cirrhosis Prediction"
+author: "Trevor Okinda"
+date: "2024"
+output:
+  github_document: 
+    toc: yes
+    toc_depth: 4
+    fig_width: 6
+    fig_height: 4
+    df_print: default
+editor_options:
+  chunk_output_type: console
+---
+
+# Student Details
+
+|                                              |     |
+|----------------------------------------------|-----|
+| **Student ID Number**                        | 134780 |
+| **Student Name**                             | Trevor Okinda |
+| **BBIT 4.2 Group**                           | C |
+| **Project Name**                             | Cirrhosis Prediction |
+
+# Setup Chunk
+
+**Note:** the following KnitR options have been set as the global defaults: <BR> `knitr::opts_chunk$set(echo = TRUE, warning = FALSE, eval = TRUE, collapse = FALSE, tidy = TRUE)`.
+
+More KnitR options are documented here <https://bookdown.org/yihui/rmarkdown-cookbook/chunk-options.html> and here <https://yihui.org/knitr/options/>.
+
+```{r setup, include=FALSE}
+library(formatR)
+knitr::opts_chunk$set(
+  warning = FALSE,
+  collapse = FALSE
+)
+```
+
+### Source: 
+
+The dataset that was used can be downloaded here: *\<https://www.kaggle.com/datasets/fedesoriano/cirrhosis-prediction-dataset\>*
+
+### Reference:
+
+*\<fedesoriano. (August 2021). Cirrhosis Prediction Dataset. Retrieved [Date Retrieved] from https://www.kaggle.com/fedesoriano/cirrhosis-prediction-dataset.\>\
+Refer to the APA 7th edition manual for rules on how to cite datasets: <https://apastyle.apa.org/style-grammar-guidelines/references/examples/data-set-references>*
+
+# Exploratory Data Analysis
+## Load dataset
+```{r load dataset}
+# Load dataset
+liver_data <- read.csv("cirrhosis.csv", colClasses = c(
+  N_Days = "numeric",
+  Status = "factor",
+  Drug = "factor",
+  Age = "numeric",
+  Sex = "factor",
+  Ascites = "factor",
+  Hepatomegaly = "factor",
+  Spiders = "factor",
+  Edema = "factor",
+  Bilirubin = "numeric",
+  Cholesterol = "numeric",
+  Albumin = "numeric",
+  Copper = "numeric",
+  Alk_Phos = "numeric",
+  SGOT = "numeric",
+  Tryglicerides = "numeric",
+  Platelets = "numeric",
+  Prothrombin = "numeric",
+  Stage = "factor"
+))
+
+# Display the structure of the dataset
+str(liver_data)
+
+# View the first few rows of the dataset
+head(liver_data)
+
+# View the dataset in a separate viewer window
+View(liver_data)
+```
+
+## Measures of Frequency
+```{r Measures of Frequency}
+# Frequency of categorical variables
+table(liver_data$Status)
+table(liver_data$Drug)
+table(liver_data$Sex)
+table(liver_data$Ascites)
+table(liver_data$Hepatomegaly)
+table(liver_data$Spiders)
+table(liver_data$Edema)
+table(liver_data$Stage)
+```
+
+## Measures of Central Tendency
+```{r MOCT}
+# Mean, median, and mode for numerical variables
+mean(liver_data$Age)
+median(liver_data$Age)
+Mode <- function(x) {
+  ux <- unique(x)
+  ux[which.max(tabulate(match(x, ux)))]
+}
+Mode(liver_data$Age)
+
+mean(liver_data$Bilirubin)
+median(liver_data$Bilirubin)
+Mode(liver_data$Bilirubin)
+```
+
+## Measures of Distribution
+```{r MOD}
+# Range for numerical variables
+range(liver_data$Age)
+range(liver_data$Bilirubin)
+
+# Variance and standard deviation
+var(liver_data$Age)
+sd(liver_data$Age)
+var(liver_data$Bilirubin)
+sd(liver_data$Bilirubin)
+
+# Quartiles
+quantile(liver_data$Age)
+quantile(liver_data$Bilirubin)
+```
+
+## Measures of Relationship
+```{r MOR}
+# Correlation matrix
+cor_matrix <- cor(liver_data[, c("Age", "Bilirubin", "Cholesterol", "Albumin", "Copper", "Alk_Phos", "SGOT", "Tryglicerides", "Platelets", "Prothrombin")])
+print(cor_matrix)
+```
+
+## ANOVA
+```{r ANOVA}
+# One-Way ANOVA example (e.g., comparing Age across different Status)
+anova_age <- aov(Age ~ Status, data = liver_data)
+summary(anova_age)
+
+# Two-Way ANOVA example (e.g., comparing Age across Sex and Drug)
+anova_age_sex_drug <- aov(Age ~ Sex + Drug, data = liver_data)
+summary(anova_age_sex_drug)
+```
+
+## Plots
+```{r Plots}
+# Histogram for Age
+hist(liver_data$Age, main = "Histogram of Age", xlab = "Age")
+
+# Bar plot for Status
+barplot(table(liver_data$Status), main = "Bar Plot of Status")
+
+# Scatter plot for Age vs. Bilirubin
+plot(liver_data$Age, liver_data$Bilirubin, main = "Scatter Plot of Age vs. Bilirubin", 
+     xlab = "Age", ylab = "Bilirubin")
+
+# Box plot for Age by Status
+boxplot(Age ~ Status, data = liver_data, main = "Box Plot of Age by Status", 
+        xlab = "Status", ylab = "Age")
+
+```
+
+# Preprocessing and Data Transformation
+## Missing Values
+```{r missing values}
+# Check for missing values in the dataset
+missing_values <- colSums(is.na(liver_data))
+
+# Print columns with missing values
+print(missing_values[missing_values > 0])
+```
+
+## Clean Dataset
+```{r Clean dataset}
+# Delete rows with missing values
+cleaned_liver_data <- na.omit(liver_data)
+
+# Check the dimensions of the cleaned dataset
+dim(cleaned_liver_data)
+
+# Check for missing values in the cleaned dataset
+missing_values_cleaned <- colSums(is.na(cleaned_liver_data))
+
+# Print columns with missing values (if any)
+print(missing_values_cleaned[missing_values_cleaned > 0])
+```
+
+# Training Model
+## Data Splitting
+```{r Data Splitting}
+# Set seed for reproducibility
+set.seed(123)
+
+# Split data into training and testing sets (e.g., 80% train, 20% test)
+train_indices <- sample(1:nrow(cleaned_liver_data), 0.8*nrow(cleaned_liver_data))
+train_data <- cleaned_liver_data[train_indices, ]
+test_data <- cleaned_liver_data[-train_indices, ]
+
+dim(train_data)
+dim(test_data)
+```
+
+## Bootstrapping
+```{r Bootstrapping}
+# Perform bootstrapping on Cholesterol
+bootstrap_chol <- function(data, num_bootstraps) {
+  bootstrap_means <- numeric(num_bootstraps)
+  for (i in 1:num_bootstraps) {
+    bootstrap_sample <- sample(data$Cholesterol, replace = TRUE)
+    bootstrap_means[i] <- mean(bootstrap_sample)
+  }
+  return(bootstrap_means)
+}
+
+# Number of bootstraps
+num_bootstraps <- 1000
+
+# Run bootstrapping
+bootstrap_means_chol <- bootstrap_chol(cleaned_liver_data, num_bootstraps)
+
+# Summary of bootstrapped means
+summary(bootstrap_means_chol)
+```
+
+## Cross-validation
+```{r Cross-validation}
+# Example using basic k-fold cross-validation with logistic regression
+library(caret)
+
+# Define control parameters for cross-validation
+control <- trainControl(method = "cv", number = 5)
+
+
+# Train logistic regression model using cross-validation
+model <- train(Status ~ ., data = train_data, method = "rf", trControl = control)
+
+# Print model performance
+print(model)
+```
+
+## Training Different Models
+```{r Training Different Models}
+# Train multinomial logistic regression model
+library(nnet)
+model_multinom <- multinom(Status ~ ., data = train_data)
+
+# Print model summary
+summary(model_multinom)
+
+# Make predictions on the test set
+predictions_multinom <- predict(model_multinom, newdata = test_data)
+
+# Evaluate model performance
+confusionMatrix(predictions_multinom, test_data$Status)
+
+# Train random forest model
+library(randomForest)
+model_rf <- randomForest(Status ~ ., data = train_data)
+
+# Print model summary
+print(model_rf)
+
+# Make predictions on the test set
+predictions_rf <- predict(model_rf, newdata = test_data)
+
+# Evaluate model performance
+confusionMatrix(predictions_rf, test_data$Status)
+
+# Train SVM model
+library(e1071)
+model_svm <- svm(Status ~ ., data = train_data)
+
+# Print model summary
+print(model_svm)
+
+# Make predictions on the test set
+predictions_svm <- predict(model_svm, newdata = test_data)
+
+# Evaluate model performance
+confusionMatrix(predictions_svm, test_data$Status)
+```
+
+## Performance Comparison
+```{r Performance Comparison}
+# Load necessary libraries
+library(caret)
+library(e1071)  # For SVM
+library(nnet)  # For neural networks
+library(randomForest)  # For random forest
+
+# Define control for cross-validation
+control <- trainControl(method = "cv", number = 10)
+
+# Train SVM model
+set.seed(123)  # For reproducibility
+model_svm <- train(Status ~ ., data = train_data, method = "svmRadial", trControl = control)
+
+# Train neural network (nnet) model
+set.seed(123)
+model_nnet <- train(Status ~ ., data = train_data, method = "nnet", trControl = control, trace = FALSE, linout = TRUE)
+
+# Train multinomial logistic regression model
+set.seed(123)
+model_multinom <- train(Status ~ ., data = train_data, method = "multinom", trControl = control, trace = FALSE)
+
+# Train random forest model
+set.seed(123)
+model_rf <- train(Status ~ ., data = train_data, method = "rf", trControl = control)
+
+# Aggregate results using resamples
+results <- resamples(list(SVM = model_svm, NNet = model_nnet, Multinom = model_multinom, RF = model_rf))
+
+# Print summary of the results
+summary(results)
+
+# Plot comparisons
+dotplot(results)
+```
+
+## Saving Model
+```{r Saving Model}
+# Load the saved SVM model
+loaded_model_svm <- readRDS("./models/svm_model.rds")
+
+# Prepare new data for prediction
+new_data <- data.frame(
+  N_Days = 4000,
+  Age = 5000,
+  Sex = "M",
+  Drug = "D-penicillamine",
+  Status = "C",  # You can put any placeholder value here since it's the target variable
+  Ascites = "N",
+  Hepatomegaly = "N",
+  Spiders = "N",
+  Edema = "N",
+  Bilirubin = 1.2,
+  Cholesterol = 150,
+  Albumin = 3.5,
+  Copper = 50,
+  Alk_Phos = 100,
+  SGOT = 40,
+  Tryglicerides = 120,
+  Platelets = 200,
+  Prothrombin = 12,
+  Stage = "1"  # You can put any placeholder value here since it's not needed for prediction
+)
+
+# Use the loaded model to make predictions for new data
+predictions_loaded_model <- predict(loaded_model_svm, newdata = new_data)
+
+# Print predictions
+print(predictions_loaded_model)
+
+```
+
